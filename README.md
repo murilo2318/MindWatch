@@ -1,8 +1,4 @@
-Aqui está uma descrição completa, robusta, profissional e detalhada do MindWatch, perfeita para usar no relatório, apresentação, PDF e no vídeo da GS.
-
-⸻
-
-MindWatch – Descrição Completa do Sistema
+MindWatch
 
 MindWatch é uma plataforma inteligente de monitoramento emocional e prevenção de crises psicológicas no ambiente corporativo. Desenvolvido como uma Prova de Conceito (POC) para o cenário do Futuro do Trabalho, o sistema utiliza Inteligência Artificial, Machine Learning e análise de dados para identificar sinais de estresse, exaustão, ansiedade, tristeza persistente e outros indicadores de risco que podem comprometer o bem-estar e a segurança do colaborador.
 
