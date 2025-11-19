@@ -1,0 +1,109 @@
+
+from flask import Flask, render_template, request, redirect, url_for, send_file
+import pandas as pd
+import joblib
+import os
+from pathlib import Path
+
+app = Flask(__name__)
+DATA_PATH = Path(__file__).resolve().parent / 'data'
+MODEL_PATH = Path(__file__).resolve().parent / 'models'
+
+# Load simulated data
+EMPLOYEES_CSV = DATA_PATH / 'simulated_responses_sample.csv'
+employees_df = pd.read_csv(EMPLOYEES_CSV)
+
+# Simple mock predict function that reproduces risk-level logic from the MVP plan:
+def compute_mindscore(row):
+    # features expected: stress, sadness, motivation, anxiety, self_harm, aggression (1-5)
+    stress = row.get('stress', 1)
+    sadness = row.get('sadness', 1)
+    motivation = row.get('motivation', 5)
+    anxiety = row.get('anxiety', 1)
+    self_harm = row.get('self_harm', 1)
+    aggression = row.get('aggression', 1)
+    # basic heuristic score (higher = more risk)
+    score = 0.4*stress + 0.25*anxiety + 0.15*sadness + 0.1*(6-motivation) + 0.6*(self_harm-1) + 0.2*aggression
+    # normalize roughly to 0-100
+    mindscore = min(max(int(score/5*100), 0), 100)
+    # rules for levels
+    level = 0
+    if self_harm >= 4:
+        level = 4
+    elif mindscore >= 85:
+        level = 4
+    elif mindscore >= 60:
+        level = 3
+    elif mindscore >= 40:
+        level = 2
+    elif mindscore >= 20:
+        level = 1
+    else:
+        level = 0
+    return mindscore, level
+
+def level_label(level):
+    labels = {
+        0: ('Saudável', 'Nenhuma ação necessária'),
+        1: ('Atenção', 'Enviar mensagem motivacional'),
+        2: ('Alerta', 'Recomendar exercícios de respiração e micro-pausa'),
+        3: ('Crítico', 'Notificar RH para contato'),
+        4: ('Emergência', 'Acionar protocolo de emergência e RH')
+    }
+    return labels.get(level, ('Desconhecido',''))
+
+@app.route('/')
+def index():
+    # compute aggregate for listing
+    df = employees_df.copy()
+    # for display choose last monthly response per employee (simulated)
+    display = []
+    for emp_id in df['id'].unique():
+        emp_rows = df[(df['id']==emp_id) & (df['type']=='monthly')]
+        if emp_rows.empty:
+            emp_rows = df[(df['id']==emp_id)]
+        last = emp_rows.iloc[-1].to_dict()
+        mindscore, level = compute_mindscore(last)
+        display.append({
+            'id': emp_id,
+            'name': last.get('name'),
+            'dept': last.get('dept'),
+            'mindscore': mindscore,
+            'level': level,
+            'label': level_label(level)[0]
+        })
+    # sort by risk level desc
+    display = sorted(display, key=lambda x: x['level'], reverse=True)
+    return render_template('index.html', employees=display)
+
+@app.route('/profile/<int:emp_id>', methods=['GET', 'POST'])
+def profile(emp_id):
+    df = employees_df.copy()
+    emp_rows = df[df['id']==emp_id]
+    if emp_rows.empty:
+        return "Funcionário não encontrado", 404
+    # build profile summary: initial (type initial), monthly history
+    initial = emp_rows[emp_rows['type']=='initial']
+    initial = initial.iloc[0].to_dict() if not initial.empty else {}
+    monthly = emp_rows[emp_rows['type']=='monthly'].tail(12).to_dict(orient='records')
+    # compute mindscore for last entry
+    last = emp_rows.iloc[-1].to_dict()
+    mindscore, level = compute_mindscore(last)
+    action = level_label(level)[1]
+    label = level_label(level)[0]
+    return render_template('profile.html',
+                           emp=last,
+                           initial=initial,
+                           monthly=monthly,
+                           mindscore=mindscore,
+                           level=level,
+                           action=action,
+                           label=label)
+
+@app.route('/export_csv')
+def export_csv():
+    cp = Path(__file__).resolve().parent / 'data' / 'simulated_responses_sample.csv'
+    return send_file(cp, as_attachment=True)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
