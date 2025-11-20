@@ -138,13 +138,21 @@ Para esta fase, será utilizada uma base de dados simulada dos cinco funcionári
 ⸻
 
 Visão Futurista
-
-No futuro, o MindWatch poderá:
-	•	integrar wearables (smartwatch, sensores de temperatura, batimentos),
-	•	monitorar sinais fisiológicos em tempo real,
-	•	prever burnout com semanas de antecedência,
-	•	integrar ambientes imersivos VR para terapia,
-	•	se tornar um assistente emocional corporativo completo.
+    1. Organizar melhor a estrutura do código, separando funções por responsabilidade para facilitar manutenção.
+	2.	Adicionar tratamento de erros para evitar que entradas inesperadas quebrem o sistema.
+	3.	Criar logs básicos para acompanhar o comportamento do modelo e facilitar depuração.
+	4.	Melhorar a limpeza e preparação dos dados, garantindo padronização antes do treinamento.
+	5.	Adicionar validação de dados simulados, verificando formatos e limites.
+	6.	Implementar testes unitários simples para validar funções críticas.
+	7.	Documentar cada função com comentários diretos indicando o que ela faz.
+	8.	Adicionar métricas claras de avaliação (acurácia, F1, recall) para medir desempenho da IA.
+	9.	Criar um arquivo de configuração para parâmetros (taxa de aprendizado, épocas, caminhos de arquivos).
+	10.	Melhorar o fluxo do MVP, separando etapas: coleta de dados → preprocessamento → modelo → interface.
+	11.	Adicionar controle de versão dos dados simulados, permitindo replicar resultados.
+	12.	Padronizar nomes de variáveis e funções, mantendo consistência.
+	13.	Adicionar diagramas simples no README, como fluxo de dados e arquitetura.
+	14.	Melhorar a interface do usuário, mesmo sendo simples, para ser mais clara.
+	15.	Criar scripts de inicialização, facilitando execução do projeto por qualquer pessoa.
 
 ⸻
  Missão
